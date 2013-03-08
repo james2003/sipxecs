@@ -173,5 +173,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/jackson-mapper-asl-1.9.13.jar" sourcepath="/home/dhubler/libsrc/jackson-mapper-asl-1.9.11-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/easymock-2.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/easymockclassextension-2.2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ical4j-1.0.5.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ical4j-vcard-0.9.4-SNAPSHOT.jar"/>
 	<classpathentry kind="output" path="bin.eclipse/classes"/>
 </classpath>

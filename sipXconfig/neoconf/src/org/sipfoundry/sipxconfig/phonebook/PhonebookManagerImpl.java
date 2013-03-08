@@ -72,11 +72,9 @@ import org.sipfoundry.sipxconfig.bulk.BulkParser;
 import org.sipfoundry.sipxconfig.bulk.csv.CsvWriter;
 import org.sipfoundry.sipxconfig.bulk.vcard.VCardParserException;
 import org.sipfoundry.sipxconfig.common.CoreContext;
-import org.sipfoundry.sipxconfig.common.DataCollectionUtil;
 import org.sipfoundry.sipxconfig.common.SipxHibernateDaoSupport;
 import org.sipfoundry.sipxconfig.common.User;
 import org.sipfoundry.sipxconfig.common.UserException;
-import org.sipfoundry.sipxconfig.common.event.DaoEventListener;
 import org.sipfoundry.sipxconfig.setting.BeanWithSettingsDao;
 import org.sipfoundry.sipxconfig.setting.Group;
 import org.springframework.beans.factory.annotation.Required;
@@ -84,12 +82,9 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
-
 import com.glaforge.i18n.io.CharsetToolkit;
 
-
-public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> implements PhonebookManager,
-        DaoEventListener {
+public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> implements PhonebookManager {
     private static final Log LOG = LogFactory.getLog(PhonebookManagerImpl.class);
 
     private static final String NAME = "name";
@@ -99,8 +94,8 @@ public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> imp
     private static final String AT_SIGN = "@";
 
     private static final String QUERY_GROUP = "SELECT u.user_id from Users u "
-        + "inner join user_group ug on u.user_id = ug.user_id "
-        + "WHERE u.user_type='C' AND ug.group_id=%d ORDER BY u.user_id;";
+            + "inner join user_group ug on u.user_id = ug.user_id "
+            + "WHERE u.user_type='C' AND ug.group_id=%d ORDER BY u.user_id;";
 
     private boolean m_phonebookManagementEnabled;
     private String m_externalUsersDirectory;
@@ -210,7 +205,7 @@ public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> imp
 
     /**
      * Where external user lists are kept.
-     *
+     * 
      * This method does not ensure that directory exists.
      */
     public String getExternalUsersDirectory() {
@@ -459,7 +454,7 @@ public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> imp
      * first and last name of each entry are searched using a prefix search (R, Rob, and Robert
      * all match the first name "Robert"). Additionally, for all entries that coorespond to User
      * objects, the aliases of that user object will be searched.
-     *
+     * 
      * @param queryString The string to search for. Can not be null
      */
     public Collection<PhonebookEntry> search(Collection<Phonebook> phonebooks, String queryString, User portalUser) {
@@ -658,10 +653,10 @@ public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> imp
 
         /**
          * Attempt to guess is this is Outlook of GMail generated CSV file.
-         *
+         * 
          * It's based on looking for specific words in header line ('yomi' for GMail and 'tty/tdd
          * phone' for Outlook. Would be nice to have a better method for that.
-         *
+         * 
          */
         private PhonebookFileEntryHelper findHeaderType(Map<String, Integer> header) {
             if (header == null) {
@@ -779,26 +774,6 @@ public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> imp
         }
     }
 
-    public void onDelete(Object entity) {
-        if (entity instanceof Group) {
-            Group group = (Group) entity;
-            getHibernateTemplate().update(group);
-            if (User.GROUP_RESOURCE_ID.equals(group.getResource())) {
-                for (Phonebook book : getPhonebooks()) {
-                    DataCollectionUtil.removeByPrimaryKey(book.getConsumers(), group.getPrimaryKey());
-                    DataCollectionUtil.removeByPrimaryKey(book.getMembers(), group.getPrimaryKey());
-                    savePhonebook(book);
-                }
-            }
-        } else if (entity instanceof User) {
-            User user = (User) entity;
-            removePrivatePhonebook(user);
-        }
-    }
-
-    public void onSave(Object entity) {
-    }
-
     public boolean getPhonebookManagementEnabled() {
         return m_phonebookManagementEnabled;
     }
@@ -808,7 +783,7 @@ public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> imp
     }
 
     public void exportPhonebook(Collection<PhonebookEntry> entries, OutputStream out, PhonebookFormat format)
-        throws IOException {
+            throws IOException {
         if (entries.isEmpty()) {
             throw new UserException("&error.phonebookEmpty");
         }
@@ -905,24 +880,25 @@ public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> imp
 
     /**
      * Retrieve the name of file in which phone book entries were kept
-     *
+     * 
      * This method is only used during upgrade: in 4.0 sipXconfig didn't keep list of phonebook
      * entries in DB. It only kept references to external files. Every time phonebook was
      * generated files were parsed. During upgrade to 4.2 files are parsed, entries are stored in
      * DB and later files are discarded.
-     *
+     * 
      * Since Phonebook object does not have fields for storing filenames any more we need to run
      * direct SQL query to retrieve them.
-     *
+     * 
      */
     public Map<Integer, String[]> getPhonebookFilesName() {
         Map<Integer, String[]> names = new TreeMap<Integer, String[]>();
         try {
             String query = "select phonebook_id, members_csv_filename, members_vcard_filename from phonebook;";
             Session currentSession = getHibernateTemplate().getSessionFactory().getCurrentSession();
-            List<Object[]> entries = currentSession.createSQLQuery(query).addScalar("phonebook_id",
-                    Hibernate.INTEGER).addScalar("members_csv_filename", Hibernate.STRING).addScalar(
-                    "members_vcard_filename", Hibernate.STRING).list();
+            List<Object[]> entries = currentSession.createSQLQuery(query)
+                    .addScalar("phonebook_id", Hibernate.INTEGER)
+                    .addScalar("members_csv_filename", Hibernate.STRING)
+                    .addScalar("members_vcard_filename", Hibernate.STRING).list();
             for (Object[] entry : entries) {
                 String[] files = {
                     (String) entry[1], (String) entry[2]
@@ -1043,4 +1019,5 @@ public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> imp
     public void setUserProfileService(UserProfileService profileService) {
         m_userProfileService = profileService;
     }
+
 }

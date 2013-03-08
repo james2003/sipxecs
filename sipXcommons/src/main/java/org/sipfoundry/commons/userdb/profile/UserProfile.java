@@ -65,6 +65,7 @@ public class UserProfile {
     private String m_avatar;
     private String m_extAvatar;
     private boolean m_useExtAvatar;
+    private Long m_timestamp;
 
     private boolean m_enabled = true;
     private boolean m_ldapManaged;
@@ -397,5 +398,13 @@ public class UserProfile {
         } catch (InvocationTargetException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public Long getTimestamp() {
+        return m_timestamp;
+    }
+
+    public void setTimestamp(Long timestamp) {
+        m_timestamp = timestamp;
     }
 }
