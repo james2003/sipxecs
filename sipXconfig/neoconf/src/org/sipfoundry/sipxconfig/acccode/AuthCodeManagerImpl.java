@@ -167,6 +167,9 @@ public class AuthCodeManagerImpl extends SipxHibernateDaoSupport<AuthCode> imple
         }
 
         AuthCodeSettings settings = m_authCodesImpl.getSettings();
+        //if (settings.isNew()) {
+        //    m_authCodesImpl.saveSettings(settings);
+       // }
         if (settings != null) {
             Set<String> aliases = settings.getAliasesAsSet();
             aliases.add(settings.getAuthCodePrefix());
