@@ -84,7 +84,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
-
 import com.glaforge.i18n.io.CharsetToolkit;
 
 
@@ -139,18 +138,19 @@ public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> imp
     public void deletePhonebooks(Collection<Integer> ids) {
         for (Integer id : ids) {
             Phonebook phonebook = getPhonebook(id);
-            getDaoEventPublisher().publishDelete(phonebook);
             deletePhonebook(phonebook);
         }
     }
 
     public void deletePhonebook(Phonebook phonebook) {
+        getDaoEventPublisher().publishDelete(phonebook);
         getHibernateTemplate().delete(phonebook);
     }
 
     public void savePhonebook(Phonebook phonebook) {
         checkDuplicates(getHibernateTemplate(), Phonebook.class, phonebook, NAME, new DuplicatePhonebookName());
         getHibernateTemplate().saveOrUpdate(phonebook);
+        getDaoEventPublisher().publishSave(phonebook);
     }
 
     public PhonebookEntry getPhonebookEntry(Integer id) {
@@ -159,6 +159,7 @@ public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> imp
 
     public void savePhonebookEntry(PhonebookEntry entry) {
         getHibernateTemplate().saveOrUpdate(entry);
+        getDaoEventPublisher().publishSave(entry);
     }
 
     public void updatePhonebookEntry(PhonebookEntry entry) {
@@ -168,6 +169,7 @@ public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> imp
 
     public void deletePhonebookEntry(PhonebookEntry entry) {
         getHibernateTemplate().delete(entry);
+        getDaoEventPublisher().publishDelete(entry);
     }
 
     class DuplicatePhonebookName extends UserException {
