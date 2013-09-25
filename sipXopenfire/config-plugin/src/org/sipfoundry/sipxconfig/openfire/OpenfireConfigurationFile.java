@@ -41,10 +41,10 @@ import org.springframework.beans.factory.annotation.Required;
 public class OpenfireConfigurationFile {
     private static final String SEPARATOR = ", ";
     //@formatter:off
-    private static final String VCARD_MAPPING =
+    private static final String VCARD_MAPPING_TEMPLATE =
             "<vCard xmlns\\='vcard-temp'>"
             + "<FN>{displayName}</FN>"
-            + "<NICKNAME>%s</NICKNAME>"
+            + "<NICKNAME>{%s}</NICKNAME>"
             + "<TEL><WORK/><VOICE/><NUMBER>{ipPhone}</NUMBER></TEL>"
             + "<EMAIL><INTERNET/><USERID>{mail}</USERID></EMAIL>"
             + "<TITLE>{title}</TITLE>"
@@ -96,9 +96,11 @@ public class OpenfireConfigurationFile {
             props.put("ldap.port", ldapConnectionParams.getPortToUse());
             props.put("ldap.sslEnabled", ldapConnectionParams.getUseTls());
             props.put("ldap.baseDN", attrMap.getSearchBase());
-            props.put("ldap.usernameField", attrMap.getImAttributeName());
+            String username = attrMap.getImAttributeName() != null ? attrMap.getImAttributeName() : attrMap
+                    .getIdentityAttributeName();
+            props.put("ldap.usernameField", username);
             props.put("ldap.searchFilter", attrMap.getSearchFilter());
-            props.put("ldap.vcard-mapping", String.format(VCARD_MAPPING, attrMap.getImAttributeName()));
+            props.put("ldap.vcard-mapping", String.format(VCARD_MAPPING_TEMPLATE, username));
             boolean ldapAnonymousAccess = StringUtils.isBlank(ldapConnectionParams.getPrincipal());
             if (!ldapAnonymousAccess) {
                 props.put("ldap.adminDN", ldapConnectionParams.getPrincipal());
