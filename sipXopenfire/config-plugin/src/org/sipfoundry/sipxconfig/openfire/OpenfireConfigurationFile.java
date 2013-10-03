@@ -86,6 +86,8 @@ public class OpenfireConfigurationFile {
             props.put("ldap.baseDN", attrMap.getAttribute("searchBase"));
             props.put("ldap.usernameField", attrMap.getAttribute("imAttributeName"));
             props.put("ldap.searchFilter", attrMap.getAttribute("searchFilter"));
+            props.put("ldap.connectionTimeout", ldapConnectionParams.getTimeout());
+            props.put("ldap.readTimeout", ldapConnectionParams.getTimeout());
 
             boolean ldapAnonymousAccess = StringUtils.isBlank(ldapConnectionParams.getPrincipal());
             if (!ldapAnonymousAccess) {
