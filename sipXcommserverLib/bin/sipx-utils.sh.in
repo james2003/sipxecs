@@ -429,7 +429,7 @@ setJavaSslOpts() {
   fi
 
   KeyStoreOpts="\
-    -Djavax.net.ssl.keyStore=@SIPX_CONFDIR@/ssl/ssl.keystore \
+    -Djavax.net.ssl.keyStore=@SIPX_CONFDIR@/ssl/ssl-web.keystore \
     -Djavax.net.ssl.keyStorePassword=$StorePassword"
 
   local JavaCmd=`@SIPX_BINDIR@/sipx-config --java`
