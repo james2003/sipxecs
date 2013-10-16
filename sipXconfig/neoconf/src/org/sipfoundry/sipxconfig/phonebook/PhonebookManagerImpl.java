@@ -130,6 +130,15 @@ public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> imp
         return books;
     }
 
+    /**
+     * Retrieves all phonebooks, both system and private
+     * @return
+     */
+    @Override
+    public Collection<Phonebook> getAllPhonebooks() {
+        return getHibernateTemplate().loadAll(Phonebook.class);
+    }
+    
     public Phonebook getPhonebook(Integer id) {
         Phonebook phonebook = load(Phonebook.class, id);
         return phonebook;
