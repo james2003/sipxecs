@@ -8,13 +8,16 @@ cfg_PKGS = \
 	org.springframework.beans \
 	org.springframework.core \
 	org.springframework.transaction \
+	org.springframework.context \
+	org.springframework.web \
 	xercesImpl \
 	sipxconfig-neoconf \
 	sipxconfig-web \
 	tapestry-annotations \
 	tapestry-framework \
 	hivemind \
-	log4j
+	log4j \
+	org.restlet
 
 plugin_JAR_PKGS = \
 	com.noelios.restlet \

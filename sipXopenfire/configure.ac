@@ -4,6 +4,7 @@ AC_CONFIG_AUX_DIR(config)
 m4_include([config/general.m4])
 m4_include([config/sipXlib.m4])
 m4_include([config/java2.m4])
+m4_include([config/dart.m4])
 AM_INIT_AUTOMAKE(foreign tar-ustar)
 SFAC_INIT_FLAGS
 CHECK_POSTGRES
@@ -11,6 +12,7 @@ CHECK_OPENFIRE
 AC_PROG_JAVA_CC([javac])
 AC_PROG_JAVA([java])
 PROG_JAVA_DEP
+CHECK_DART_SDK
 AC_CONFIG_FILES([
   Makefile
   etc/Makefile

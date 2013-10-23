@@ -1,6 +1,5 @@
-name: sipxconfig
+name: sipxopenfire
 description: sipXconfig Admin UI
 dependencies:
   angular: any
   browser: any
-  intl: any
