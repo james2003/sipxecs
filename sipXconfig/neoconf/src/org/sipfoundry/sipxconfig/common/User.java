@@ -16,9 +16,7 @@ import static org.sipfoundry.commons.mongo.MongoConstants.UID;
 import static org.sipfoundry.commons.mongo.MongoConstants.VOICEMAIL_ENABLED;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -168,7 +166,7 @@ public class User extends AbstractUser implements Replicable {
         props.put(GROUPS, getGroupsNames().split(" "));
         props.put(TIMEZONE, getTimezone().getID());
         props.put(VOICEMAIL_ENABLED, isDepositVoicemail());
-        props.put(TIMESTAMP, new Date(Calendar.getInstance(TimeZone.getTimeZone("GMT")).getTimeInMillis()));
+        props.put(TIMESTAMP, System.currentTimeMillis());
         return props;
     }
 
