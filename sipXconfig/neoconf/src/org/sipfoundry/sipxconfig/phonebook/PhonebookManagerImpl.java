@@ -85,6 +85,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
 import com.glaforge.i18n.io.CharsetToolkit;
+import com.google.gdata.data.dublincore.Publisher;
 
 
 public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> implements PhonebookManager,
@@ -269,6 +270,7 @@ public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> imp
             phonebook.setName("privatePhonebook_" + user.getId());
             phonebook.setUser(user);
             savePhonebook(phonebook);
+            getDaoEventPublisher().publishSave(phonebook);
         }
 
         return phonebook;
@@ -1053,5 +1055,10 @@ public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> imp
 
     public void setUserProfileService(UserProfileService profileService) {
         m_userProfileService = profileService;
+    }
+
+    @Override
+    public Phonebook getPrivatePhonebookCreateIfRequired(String userName) {
+        return getPrivatePhonebookCreateIfRequired(m_coreContext.loadUserByUserName(userName));
     }
 }

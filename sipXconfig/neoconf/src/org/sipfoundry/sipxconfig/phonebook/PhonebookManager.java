@@ -12,6 +12,7 @@ package org.sipfoundry.sipxconfig.phonebook;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.Principal;
 import java.util.Collection;
 import java.util.Map;
 
@@ -121,5 +122,7 @@ public interface PhonebookManager extends DataObjectSource<Phonebook> {
     public void removePrivatePhonebook(User user);
 
     Collection<Phonebook> getAllPhonebooks();
+
+    Phonebook getPrivatePhonebookCreateIfRequired(String userName);
 
 }
