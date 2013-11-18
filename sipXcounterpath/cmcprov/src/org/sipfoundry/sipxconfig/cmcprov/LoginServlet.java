@@ -16,8 +16,10 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -30,9 +32,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.dom4j.Attribute;
+import org.dom4j.DocumentException;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
 import org.sipfoundry.sipxconfig.common.User;
 import org.sipfoundry.sipxconfig.device.Profile;
 import org.sipfoundry.sipxconfig.phone.Phone;
+import org.sipfoundry.sipxconfig.phone.counterpath.CounterpathPhoneModel;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 public class LoginServlet extends ProvisioningServlet {
@@ -72,8 +79,6 @@ public class LoginServlet extends ProvisioningServlet {
     private static final String VALUE = "\" value=";
     private static final String TAG_CLOSE = "/>\n";
     private static final String CODEC_START_TAG = "\t\t\t\t\t<codec name=\"";
-    private static final String UUID = "uuid";
-    private static final String BRIA_USER = "user";
 
     private LoginDelegate delegate;
 
@@ -108,14 +113,15 @@ public class LoginServlet extends ProvisioningServlet {
             reqType = parameters.get(OUTPUT_TYPE);
             User user = authenticateRequest(parameters);
 
-            Phone phone = getProvisioningContext().getPhoneForUser(user);
+            String[] phoneModels = getWebContext().getBeanNamesForType(CounterpathPhoneModel.class);
+            LOG.debug("Got models: " + Arrays.toString(phoneModels));
+            Phone phone = getProvisioningContext().getPhoneForUser(user, phoneModels);
             if (phone == null) {
                 throw new FailureDataException(INVALID_CREDENTIALS);
             }
             Profile[] profileFilenames = phone.getProfileTypes();
 
             if (delegate != null) {
-                String uuid = parameters.get(UUID);
                 String deviceLimitStr = phone.getSettingValue("provisioning/deviceLimit");
                 int deviceLimit = -1;
                 try {
@@ -124,7 +130,7 @@ public class LoginServlet extends ProvisioningServlet {
                     LOG.warn(String.format("Could not parse device limit from [%s]", deviceLimitStr));
                 }
                 try {
-                    delegate.auditLoginRequest(user.getName(), phone.getNiceName(), uuid, deviceLimit);
+                    delegate.auditLoginRequest(parameters, phone.getNiceName(), deviceLimit);
                 } catch (IllegalArgumentException ex) {
                     throw new FailureDataException(ex.getMessage());
                 }
@@ -174,15 +180,15 @@ public class LoginServlet extends ProvisioningServlet {
     protected static User authenticateRequest(Map<String, String> parameters) {
         /*
          * Authenticates a login requests. Returns a User object representing the authenticated
-         * user if succesful, otherwise throws a Exception.
+         * user if successful, otherwise throws a Exception.
          */
         User user;
         String username;
         String password;
-        if (!parameters.containsKey(BRIA_USER) || !parameters.containsKey(PASSWORD)) {
+        if (!parameters.containsKey(USERNAME) || !parameters.containsKey(PASSWORD)) {
             throw new FailureDataException(USERNAME_PASSWORD_CANNOT_BE_MISSING_ERROR);
         }
-        username = parameters.get(BRIA_USER);
+        username = parameters.get(USERNAME);
         // if supplied as email address, strip domain
         int domainIndex = username.indexOf('@');
         if (domainIndex >= 0) {
@@ -204,7 +210,7 @@ public class LoginServlet extends ProvisioningServlet {
         }
 
         if (!line.contains("<?xml version=")) {
-            LOG.debug("Parsing line: " + line);
+            // LOG.debug("Parsing line: " + line);
             String[] pairs = line.split("\\&");
             for (String pair : pairs) {
                 String[] fields = pair.split("=");
@@ -221,40 +227,35 @@ public class LoginServlet extends ProvisioningServlet {
                 line = br.readLine();
                 fulltext = fulltext + line;
             }
-            LOG.debug("Parsing fulltext: " + fulltext);
-            String param = parseXmlParam(fulltext, BRIA_USER);
-            if (param != null) {
-                parameters.put(BRIA_USER, param);
-            }
-            param = parseXmlParam(fulltext, PASSWORD);
-            if (param != null) {
-                parameters.put(PASSWORD, param);
-            }
-            param = parseXmlParam(fulltext, UUID);
-            if (param != null) {
-                parameters.put(UUID, param);
-            }
+            // LOG.debug("Parsing fulltext: " + fulltext);
+            parseXmlParams(parameters, fulltext);
             parameters.put(OUTPUT_TYPE, XML);
         }
-        LOG.debug("Parsed params: " + parameters);
+        // LOG.debug("Parsed params: " + parameters);
 
         return parameters;
     }
 
-    private static String parseXmlParam(String text, String paramName) {
-        String paramPre = paramName + "=\"";
-        int index = text.indexOf(paramPre);
-        LOG.debug(String.format("Looking for [%s], got index %d", paramPre, index));
-        String parsedParam;
-
-        if (index >= 0) {
-            parsedParam = text.substring(index + paramPre.length(), text.substring(index + paramPre.length())
-                    .indexOf(DOUBLE_QUOTE) + index + paramPre.length());
-        } else {
-            parsedParam = null;
+    private static void parseXmlParams(Map<String, String> params, String xmlRequest) {
+        SAXReader reader = new SAXReader();
+        reader.setEncoding(PARAMETER_ENCODING);
+        try {
+            Element rootElem = reader.read(new StringReader(xmlRequest)).getRootElement();
+            for (Object elemObj : rootElem.elements()) {
+                Element elem = (Element) elemObj;
+                if ("login".equals(elem.getName())) {
+                    for (Object attrObj : elem.attributes()) {
+                        Attribute attr = (Attribute) attrObj;
+                        params.put(attr.getName(), attr.getStringValue());
+                    }
+                }
+            }
+        } catch (DocumentException e) {
+            LOG.error("Error parsing XML request: " + xmlRequest);
         }
-
-        return parsedParam;
+        // xml requests have "user" parameter instead of "username"; add parameter as username for
+        // simpler processing
+        params.put(USERNAME, params.get("user"));
     }
 
     private static void updateContactList(User user, Phone phone, String wwwdir, String phonedir) {
