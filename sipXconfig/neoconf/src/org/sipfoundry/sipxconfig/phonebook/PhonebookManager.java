@@ -131,4 +131,12 @@ public interface PhonebookManager extends DataObjectSource<Phonebook> {
 
     PhonebookEntry findPhonebookEntryByInternalId(String internalId);
 
+    Collection<Phonebook> getPublicPhonebooksByUser(int userid);
+
+    Collection<Phonebook> getAllPhonebooksByUser(int userid);
+
+    Phonebook getPrivatePhonebook(int userid);
+
+    Collection<PhonebookEntry> getEntries(Collection<Phonebook> phonebooks, String userName);
+
 }

@@ -10,13 +10,13 @@ package org.sipfoundry.sipxconfig.common;
 
 import static org.apache.commons.lang.StringUtils.EMPTY;
 import static org.apache.commons.lang.StringUtils.defaultString;
+import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
 import static org.apache.commons.lang.StringUtils.join;
 import static org.apache.commons.lang.StringUtils.lowerCase;
 import static org.apache.commons.lang.StringUtils.split;
 import static org.apache.commons.lang.StringUtils.trim;
 import static org.apache.commons.lang.StringUtils.trimToNull;
-import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.sipfoundry.sipxconfig.common.UserCallerAliasInfo.ANONYMOUS_CALLER_ALIAS;
 import static org.sipfoundry.sipxconfig.common.UserCallerAliasInfo.EXTERNAL_NUMBER;
 import static org.sipfoundry.sipxconfig.permission.PermissionName.EXCHANGE_VOICEMAIL;
@@ -235,8 +235,12 @@ public abstract class AbstractUser extends BeanWithGroups {
      * last names and first name are empty. Use getLabel as safer alternative.
      */
     public String getDisplayName() {
+        return getDisplayName(m_firstName, m_lastName);
+    }
+
+    public static String getDisplayName(String firstName, String lastName) {
         Object[] names = {
-            m_firstName, m_lastName
+            firstName, lastName
         };
         String s = join(names, ' ');
         return trimToNull(s);
@@ -412,17 +416,16 @@ public abstract class AbstractUser extends BeanWithGroups {
 
     @Override
     protected void initializeSettingModel() {
-         /**
-         * this override is needed for Group MoH permission:
-         * when an user is part of a Group, it's MoH settings should be those of the Group;
-         * if the user has GROUP_MUSIC_ON_HOLD permission then it can have personalized settings for MoH
+        /**
+         * this override is needed for Group MoH permission: when an user is part of a Group, it's
+         * MoH settings should be those of the Group; if the user has GROUP_MUSIC_ON_HOLD
+         * permission then it can have personalized settings for MoH
          */
         setSettingModel2(new BeanWithGroupsModel(this) {
             @Override
             public SettingValue getSettingValue(Setting setting) {
                 String parentSettings = setting.getParent().getName();
-                if (parentSettings.equals(User.MOH_SETTING)
-                        && !getGroups().isEmpty()
+                if (parentSettings.equals(User.MOH_SETTING) && !getGroups().isEmpty()
                         && !hasPermission(PermissionName.GROUP_MUSIC_ON_HOLD)) {
                     return super.getDefault(setting);
                 } else {
@@ -710,7 +713,7 @@ public abstract class AbstractUser extends BeanWithGroups {
     }
 
     public void setEnabled(boolean enabled) {
-        //user is disabled and we need to store the disabled date
+        // user is disabled and we need to store the disabled date
         if (m_userProfile.isEnabled() && !enabled) {
             setDisabledDate(new Date());
         } else if (enabled) {

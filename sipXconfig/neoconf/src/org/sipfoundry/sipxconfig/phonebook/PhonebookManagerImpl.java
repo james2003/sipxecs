@@ -131,7 +131,7 @@ public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> imp
         return books;
     }
 
-    /** {@inheritDoc */
+    /** {@inheritDoc  */
     @Override
     public Collection<Phonebook> getAllPhonebooks() {
         return getHibernateTemplate().loadAll(Phonebook.class);
@@ -257,16 +257,25 @@ public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> imp
 
     @Override
     public Collection<Phonebook> getPublicPhonebooksByUser(User consumer) {
+        return getPublicPhonebooksByUser(consumer.getId());
+    }
+
+    @Override
+    public Collection<Phonebook> getPublicPhonebooksByUser(int userid) {
         Collection<Phonebook> books = getHibernateTemplate().findByNamedQueryAndNamedParam("phoneBooksByUser",
-                PARAM_USER_ID, consumer.getId());
+                PARAM_USER_ID, userid);
         return books;
     }
 
     @Override
     public Collection<Phonebook> getAllPhonebooksByUser(User consumer) {
+        return getAllPhonebooksByUser(consumer.getId());
+    }
 
-        Collection<Phonebook> phonebooks = getPublicPhonebooksByUser(consumer);
-        Phonebook privatePhonebook = getPrivatePhonebook(consumer);
+    @Override
+    public Collection<Phonebook> getAllPhonebooksByUser(int userid) {
+        Collection<Phonebook> phonebooks = getPublicPhonebooksByUser(userid);
+        Phonebook privatePhonebook = getPrivatePhonebook(userid);
         if (privatePhonebook != null) {
             addAll(phonebooks, privatePhonebook);
         }
@@ -275,9 +284,14 @@ public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> imp
 
     @Override
     public Phonebook getPrivatePhonebook(User user) {
+        return getPrivatePhonebook(user.getId());
+    }
+
+    @Override
+    public Phonebook getPrivatePhonebook(int userid) {
         String query = "privatePhoneBookByUser";
         List<Phonebook> privateBooks = getHibernateTemplate().findByNamedQueryAndNamedParam(query, PARAM_USER_ID,
-                user.getId());
+                userid);
         return requireOneOrZero(privateBooks, query);
     }
 
@@ -297,6 +311,11 @@ public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> imp
 
     @Override
     public Collection<PhonebookEntry> getEntries(Collection<Phonebook> phonebooks, User user) {
+        return getEntries(phonebooks, user.getUserName());
+    }
+
+    @Override
+    public Collection<PhonebookEntry> getEntries(Collection<Phonebook> phonebooks, String userName) {
         Map<String, PhonebookEntry> entries = new TreeMap();
         if (!phonebooks.isEmpty()) {
             for (Phonebook phonebook : phonebooks) {
@@ -307,7 +326,7 @@ public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> imp
         }
         boolean everyone = getGeneralPhonebookSettings().isEveryoneEnabled();
         if (everyone) {
-            addEveryoneEntries(user, entries);
+            addEveryoneEntries(userName, entries);
         }
         return entries.values();
     }
@@ -341,16 +360,16 @@ public class PhonebookManagerImpl extends SipxHibernateDaoSupport<Phonebook> imp
 
         boolean everyone = getGeneralPhonebookSettings().isEveryoneEnabled();
         if (everyone) {
-            addEveryoneEntries(user, entries);
+            addEveryoneEntries(user.getUserName(), entries);
         }
 
         return entries.values();
     }
 
-    private void addEveryoneEntries(final User user, final Map<String, PhonebookEntry> entries) {
+    private void addEveryoneEntries(final String userName, final Map<String, PhonebookEntry> entries) {
         List<UserProfile> allProfiles = m_userProfileService.getAllUserProfiles();
         for (UserProfile profile : allProfiles) {
-            if (!user.getUserName().equals(profile.getUserName())) {
+            if (!userName.equals(profile.getUserName())) {
                 PhonebookEntry entry = extractPhonebookEntry(profile);
                 entries.put(getEntryKey(entry), entry);
             }

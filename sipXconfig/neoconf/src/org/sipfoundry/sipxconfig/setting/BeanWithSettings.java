@@ -95,7 +95,10 @@ public abstract class BeanWithSettings extends BeanWithId {
     }
 
     public Object getSettingTypedValue(String path) {
-        return getSettings().getSetting(path).getTypedValue();
+        if (getSettings().getSetting(path) != null) {
+            return getSettings().getSetting(path).getTypedValue();
+        }
+        return null;
     }
 
     public void setSettingValue(String path, String value) {
