@@ -35,7 +35,7 @@ import org.sipfoundry.sipxconfig.device.ProfileManager;
 import org.sipfoundry.sipxconfig.feature.FeatureManager;
 import org.sipfoundry.sipxconfig.forwarding.ForwardingContext;
 import org.sipfoundry.sipxconfig.forwarding.UserGroupSchedule;
-import org.sipfoundry.sipxconfig.hotelling.HotellingLocator;
+import org.sipfoundry.sipxconfig.hoteling.HotelingLocator;
 import org.sipfoundry.sipxconfig.imbot.ImBot;
 import org.sipfoundry.sipxconfig.ivr.Ivr;
 import org.sipfoundry.sipxconfig.permission.Permission;
@@ -70,7 +70,7 @@ public abstract class UserGroupSettings extends GroupSettings implements PageBeg
     private static final String HOTELLING_SETTING = "hotelling/enable";
 
     @InjectObject(value = "spring:hotellingLocator")
-    public abstract HotellingLocator getHotellingLocator();
+    public abstract HotelingLocator getHotellingLocator();
 
     @InjectObject(value = "spring:forwardingContext")
     public abstract ForwardingContext getForwardingContext();
